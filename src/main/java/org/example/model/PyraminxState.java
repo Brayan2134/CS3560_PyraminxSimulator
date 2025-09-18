@@ -92,6 +92,19 @@ public final class PyraminxState {
         return new PyraminxState(t, edgeAt, edgeOri, centerAt, centerOri);
     }
 
+    /**
+     * Returns true iff this state is in the canonical solved position/orientation.
+     * Why: lets the view decide whether to show physical mono-color or piece-tint.
+     */
+    public boolean isSolved() {
+        // tips all 0, centers at identity with ori 0 (mod 3), edges at identity with ori 0
+        for (int i = 0; i < tipOri.length; i++) if (tipOri[i] != 0) return false;
+        for (int i = 0; i < centerAt.length; i++) if (centerAt[i] != i || centerOri[i] != 0) return false;
+        for (int i = 0; i < edgeAt.length; i++) if (edgeAt[i] != i || edgeOri[i] != 0) return false;
+        return true;
+    }
+
+
     /*--------------------------------------- helper functions ---------------------------------------*/
 
     /**

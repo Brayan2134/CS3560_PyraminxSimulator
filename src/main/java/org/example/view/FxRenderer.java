@@ -116,11 +116,13 @@ public final class FxRenderer extends Pane {
 
         // Sticker colors via mapping from state → visible face color
         EdgePos[] ring = StickerMap.edgesAround(f);
+        boolean solved = s.isSolved();
 
         // Map ring[0], ring[1], ring[2] to LEFT, RIGHT, TOP edges respectively
-        Face cLeft  = StickerMap.edgeStickerPieceTint(s, f, ring[0]);  // LEFT side (AB)
-        Face cRight = StickerMap.edgeStickerPieceTint(s, f, ring[1]);  // RIGHT/BOTTOM (BC)
-        Face cTop   = StickerMap.edgeStickerPieceTint(s, f, ring[2]);  // TOP (CA)
+        // If solved → show physical mono-color; else → piece-tint so you can track
+        Face cLeft  = solved ? f : StickerMap.edgeStickerPieceTint(s, f, ring[0]);  // LEFT side (AB)
+        Face cRight = solved ? f : StickerMap.edgeStickerPieceTint(s, f, ring[1]);  // RIGHT/BOTTOM (BC)
+        Face cTop   = solved ? f : StickerMap.edgeStickerPieceTint(s, f, ring[2]);  // TOP (CA)
 
 
         Circle leftSticker  = new Circle(pLeft.getX(),  pLeft.getY(),  r, Palette.color(cLeft));
