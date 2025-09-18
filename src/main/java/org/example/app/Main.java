@@ -15,6 +15,9 @@ import javafx.scene.control.TextField;
 import javafx.util.Duration;
 import org.example.model.moves.MoveLibrary;
 import org.example.view.Animator;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+
 
 /**
  * Main.java
@@ -52,9 +55,31 @@ public class Main extends Application {
 
         Label legend = new Label("• Click=Layer  • Shift=CCW  • Alt/Ctrl=Tip  • RightClick=CCW");
         legend.setStyle("-fx-text-fill: #555;");
-        ToolBar bar = new ToolBar(scramble, undo, redo, reset, solve, new Separator(),
+
+        Label movesLabel = new Label();
+        movesLabel.textProperty().bind(controller.moveCountProperty().asString("Moves: %d"));
+
+        TextField liveAlg = new TextField();
+        liveAlg.setEditable(false);
+        liveAlg.setPrefColumnCount(28);
+        liveAlg.textProperty().bind(controller.algTextProperty());
+
+        Button copyAlg = new Button("Copy Alg");
+        copyAlg.setOnAction(e -> {
+            ClipboardContent cc = new ClipboardContent();
+            cc.putString(controller.algTextProperty().get());
+            Clipboard.getSystemClipboard().setContent(cc);
+        });
+
+        ToolBar bar = new ToolBar(
+                scramble, undo, redo, reset, solve,
+                new Separator(),
                 new Label("Alg:"), alg, applyAlg, playAlg,
-                new Separator(), legend);
+                new Separator(),
+                movesLabel, new Label("  "), new Label("Seq:"), liveAlg, copyAlg,
+                new Separator(),
+                legend
+        );
 
 
         FxRenderer renderer = new FxRenderer(controller.stateProperty(), controller::apply);

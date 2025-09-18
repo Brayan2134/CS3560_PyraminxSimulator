@@ -5,6 +5,7 @@ import org.example.model.PyraminxState;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Iterator;
 
 /**
  * History.java
@@ -65,4 +66,31 @@ public final class History {
     public int undoSize() { return undo.size(); }
     public int redoSize() { return redo.size(); }
     public void clear() { undo.clear(); redo.clear(); }
+
+    /**
+     * Renders the undo stack as chronological notation (oldest → newest).
+     * Why: Useful for UI display / copy.
+     * Postconditions: string like "U L r2 u" or "" if empty.
+     */
+    public String toAlg() {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<Move> it = undo.descendingIterator(); it.hasNext(); ) {
+            sb.append(it.next().notation());
+            if (it.hasNext()) sb.append(' ');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Renders the inverse of the undo stack (useful as a solving sequence).
+     * Postconditions: inverse applied newest → oldest, e.g., "u r2 L' U2".
+     */
+    public String toInverseAlg() {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<Move> it = undo.iterator(); it.hasNext(); ) {
+            sb.append(it.next().inverse().notation());
+            if (it.hasNext()) sb.append(' ');
+        }
+        return sb.toString();
+    }
 }

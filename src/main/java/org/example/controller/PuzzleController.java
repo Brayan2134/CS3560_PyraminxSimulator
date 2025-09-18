@@ -1,7 +1,6 @@
 package org.example.controller;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import org.example.model.Move;
 import org.example.model.PyraminxState;
 import org.example.model.engine.History;
@@ -24,13 +23,28 @@ public final class PuzzleController {
     private final History history;
     private final ObjectProperty<PyraminxState> state = new SimpleObjectProperty<>(PyraminxState.solved());
 
+    private final StringProperty algText = new SimpleStringProperty("");
+    private final IntegerProperty moveCount = new SimpleIntegerProperty(0);
+
+
     public PuzzleController(History history) { this.history = history; }
 
     /** Read-only state for the View to observe. */
     public ObjectProperty<PyraminxState> stateProperty() { return state; }
+    public ReadOnlyStringProperty algTextProperty() { return algText; }
+    public ReadOnlyIntegerProperty moveCountProperty() { return moveCount; }
 
-    /** Apply any move and publish state. */
-    public void apply(Move m) { state.set(history.apply(state.get(), m)); }
+    /** Internal: refresh derived UI properties from history. */
+    private void refreshMeta() {
+        algText.set(history.toAlg());
+        moveCount.set(history.undoSize());
+    }
+
+    /** Apply any move and publish state + meta. */
+    public void apply(Move m) {
+        state.set(history.apply(state.get(), m));
+        refreshMeta();
+    }
 
     /** Convenience: layer/tip moves. */
     public void layer(Face f, int turns) { apply(new LayerRotation(f, turns)); }
@@ -42,18 +56,20 @@ public final class PuzzleController {
         PyraminxState s = state.get();
         for (Move m : seq) s = history.apply(s, m);
         state.set(s);
+        refreshMeta();
     }
 
     /** History ops. */
-    public void undo() { state.set(history.undo(state.get())); }
-    public void redo() { state.set(history.redo(state.get())); }
-    public void reset(){ history.clear(); state.set(PyraminxState.solved()); }
+    public void undo() { state.set(history.undo(state.get())); refreshMeta(); }
+    public void redo() { state.set(history.redo(state.get())); refreshMeta(); }
+    public void reset() { history.clear(); state.set(PyraminxState.solved()); refreshMeta(); }
 
     /** Scramble N random moves. */
     public void scramble(int n) {
         PyraminxState s = state.get();
         for (Move m : MoveLibrary.scramble(n)) s = history.apply(s, m);
         state.set(s);
+        refreshMeta();
     }
 
     /**
@@ -67,6 +83,7 @@ public final class PuzzleController {
         PyraminxState s = state.get();
         while (history.undoSize() > 0) s = history.undo(s);
         state.set(s);
+        refreshMeta();
     }
 
     /** Applies a list of moves as one transaction (no animation). */
