@@ -14,6 +14,11 @@ import org.example.model.PyraminxState;
 import org.example.model.state.CenterPos;
 import org.example.model.state.EdgePos;
 import org.example.model.state.Face;
+import java.util.function.Consumer;
+import javafx.scene.input.MouseButton;
+import org.example.model.Move;
+import org.example.model.moves.LayerRotation;
+import org.example.model.moves.TipRotation;
 
 /**
  * FxRenderer.java
@@ -26,12 +31,13 @@ import org.example.model.state.Face;
  */
 public final class FxRenderer extends Pane {
     private final ReadOnlyObjectProperty<PyraminxState> state;
+    private final Consumer<Move> moveSink;
 
-    public FxRenderer(ReadOnlyObjectProperty<PyraminxState> state) {
+    public FxRenderer(ReadOnlyObjectProperty<PyraminxState> state, Consumer<Move> moveSink) {
         this.state = state;
+        this.moveSink = moveSink;
         setPadding(new Insets(12));
         setMinSize(600, 400);
-        // initial paint + subscribe
         repaint(state.get());
         state.addListener((obs, oldS, newS) -> repaint(newS));
     }
@@ -91,6 +97,9 @@ public final class FxRenderer extends Pane {
         tri.setFill(Palette.color(f).deriveColor(0, 1, 1, 0.30));
         tri.setStroke(Color.GRAY);
         tri.setStrokeWidth(1.5);
+
+        // Click to apply moves on this face.
+        installFaceHandlers(tri, f);
 
         // Centroid & edge midpoints
         double gx = (ax + bx + cx) / 3.0, gy = (ay + by + cy) / 3.0;
@@ -160,4 +169,25 @@ public final class FxRenderer extends Pane {
         return new Point2D(p.getX() + (q.getX() - p.getX()) * t,
                 p.getY() + (q.getY() - p.getY()) * t);
     }
+
+    /**
+     * Installs mouse handlers on a face polygon to trigger moves.
+     * Role: View→Controller bridge (thin)
+     *
+     * Controls:
+     *  - Left click: layer CW (turns=1)
+     *  - Shift + click OR Right click: layer CCW (turns=2)
+     *  - Alt (or Ctrl) + click: tip CW/CCW (Shift still flips to CCW)
+     */
+    private void installFaceHandlers(Polygon tri, Face f) {
+        tri.setOnMouseClicked(e -> {
+            boolean ccw = e.isShiftDown() || e.getButton() == MouseButton.SECONDARY;
+            boolean tip = e.isAltDown() || e.isControlDown() || e.getButton() == MouseButton.MIDDLE;
+            int turns = ccw ? 2 : 1;
+            Move m = tip ? new TipRotation(f, turns) : new LayerRotation(f, turns);
+            if (moveSink != null) moveSink.accept(m);
+            e.consume();
+        });
+    }
+
 }

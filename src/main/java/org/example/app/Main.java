@@ -39,6 +39,7 @@ public class Main extends Application {
         Button applyAlg = new Button("Apply");
         Button playAlg  = new Button("Play");
 
+
         scramble.setOnAction(e -> controller.scramble(12));
         undo.setOnAction(e -> controller.undo());
         redo.setOnAction(e -> controller.redo());
@@ -49,10 +50,14 @@ public class Main extends Application {
         playAlg.setOnAction(e -> Animator.play(controller, MoveLibrary.parse(alg.getText()), Duration.millis(180)));
         alg.setOnAction(e -> controller.applyAlg(alg.getText())); // press Enter to apply
 
+        Label legend = new Label("• Click=Layer  • Shift=CCW  • Alt/Ctrl=Tip  • RightClick=CCW");
+        legend.setStyle("-fx-text-fill: #555;");
         ToolBar bar = new ToolBar(scramble, undo, redo, reset, solve, new Separator(),
-                new Label("Alg:"), alg, applyAlg, playAlg);
+                new Label("Alg:"), alg, applyAlg, playAlg,
+                new Separator(), legend);
 
-        FxRenderer renderer = new FxRenderer(controller.stateProperty());
+
+        FxRenderer renderer = new FxRenderer(controller.stateProperty(), controller::apply);
         BorderPane root = new BorderPane(renderer); root.setTop(bar);
         Scene scene = new Scene(root, 800, 520);
         InputBindings.install(scene, controller);
