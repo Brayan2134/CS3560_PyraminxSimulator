@@ -1,3 +1,8 @@
+import org.gradle.api.tasks.compile.JavaCompile
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+}
 plugins {
     java
     application
