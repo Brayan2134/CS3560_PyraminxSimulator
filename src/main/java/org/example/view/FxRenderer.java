@@ -19,7 +19,7 @@ import javafx.scene.input.MouseButton;
 import org.example.model.Move;
 import org.example.model.moves.LayerRotation;
 import org.example.model.moves.TipRotation;
-
+import org.example.view.StickerMap;
 /**
  * FxRenderer.java
  * Desc: Minimal diagnostic renderer: shows four face panels with center orientation.
@@ -116,10 +116,12 @@ public final class FxRenderer extends Pane {
 
         // Sticker colors via mapping from state → visible face color
         EdgePos[] ring = StickerMap.edgesAround(f);
+
         // Map ring[0], ring[1], ring[2] to LEFT, RIGHT, TOP edges respectively
-        Face cLeft  = StickerMap.edgeStickerColorOnFace(f, ring[0], s.edgeOrientation(ring[0]));
-        Face cRight = StickerMap.edgeStickerColorOnFace(f, ring[1], s.edgeOrientation(ring[1]));
-        Face cTop   = StickerMap.edgeStickerColorOnFace(f, ring[2], s.edgeOrientation(ring[2]));
+        Face cLeft  = StickerMap.edgeStickerPieceTint(s, f, ring[0]);  // LEFT side (AB)
+        Face cRight = StickerMap.edgeStickerPieceTint(s, f, ring[1]);  // RIGHT/BOTTOM (BC)
+        Face cTop   = StickerMap.edgeStickerPieceTint(s, f, ring[2]);  // TOP (CA)
+
 
         Circle leftSticker  = new Circle(pLeft.getX(),  pLeft.getY(),  r, Palette.color(cLeft));
         Circle rightSticker = new Circle(pRight.getX(), pRight.getY(), r, Palette.color(cRight));

@@ -1,5 +1,6 @@
 package org.example.view;
 
+import org.example.model.PyraminxState;
 import org.example.model.state.EdgePos;
 import org.example.model.state.Face;
 
@@ -43,5 +44,29 @@ public final class StickerMap {
      */
     public static Face edgeStickerColorOnFace(Face f, EdgePos pos, int ori) {
         return (ori & 1) == 0 ? f : otherFace(pos, f);
+    }
+
+    public static Face edgeStickerColorOnFace(PyraminxState s, Face f, EdgePos pos) {
+        int ori = s.edgeOrientation(pos) & 1;                // 0 or 1
+        int pieceId = s.edgeAt(pos);                         // which edge piece is at 'pos'
+        EdgePos piece = EdgePos.values()[pieceId];
+        return (ori == 0) ? f : otherFaceOfPiece(piece, f);
+    }
+
+    public static Face edgeStickerPieceTint(PyraminxState s, Face f, EdgePos pos) {
+        int pieceId = s.edgeAt(pos);
+        EdgePos piece = EdgePos.values()[pieceId];
+        return otherFaceOfPiece(piece, f);
+    }
+
+    public static Face otherFaceOfPiece(EdgePos piece, Face one) {
+        return switch (piece) {
+            case UL -> (one == Face.U ? Face.L : Face.U);
+            case UR -> (one == Face.U ? Face.R : Face.U);
+            case UB -> (one == Face.U ? Face.B : Face.U);
+            case LR -> (one == Face.L ? Face.R : Face.L);
+            case LB -> (one == Face.L ? Face.B : Face.L);
+            case RB -> (one == Face.R ? Face.B : Face.R);
+        };
     }
 }
