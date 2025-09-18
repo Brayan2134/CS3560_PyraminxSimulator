@@ -45,3 +45,5 @@ build/
 .gradle/8.5/fileHashes/fileHashes.lock
 .gradle/8.5/fileHashes/resourceHashesCache.bin
 .gradle/buildOutputCleanup/buildOutputCleanup.lock
+/.idea
+/.idea
