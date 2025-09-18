@@ -55,4 +55,25 @@ public final class PuzzleController {
         for (Move m : MoveLibrary.scramble(n)) s = history.apply(s, m);
         state.set(s);
     }
+
+    /**
+     * Undoes all applied moves (fast "solve" path using history).
+     * Role: Core controller convenience
+     *
+     * Postconditions:
+     *  - State becomes the result of undoing every move in the undo stack.
+     */
+    public void solveByUndoAll() {
+        PyraminxState s = state.get();
+        while (history.undoSize() > 0) s = history.undo(s);
+        state.set(s);
+    }
+
+    /** Applies a list of moves as one transaction (no animation). */
+    public void applyAll(java.util.List<Move> seq) {
+        PyraminxState s = state.get();
+        for (Move m : seq) s = history.apply(s, m);
+        state.set(s);
+    }
+
 }
