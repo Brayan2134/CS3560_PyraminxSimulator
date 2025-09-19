@@ -11,6 +11,7 @@ import org.example.controller.PuzzleController;
 import org.example.model.engine.History;
 import org.example.view.FxRenderer;
 import org.example.view.InputBindings;
+import org.example.view.Pyraminx3DView;
 
 /**
  * Main.java
@@ -34,10 +35,10 @@ public class Main extends Application {
      */
     @Override
     public void start(Stage stage) {
-        // Controller (owns state + history)
+        // Controller (model + history)
         PuzzleController controller = new PuzzleController(new History());
 
-        // --- Toolbar: core actions ---
+        // --- Toolbar buttons ---
         Button scramble = new Button("Scramble");
         Button undo     = new Button("Undo");
         Button redo     = new Button("Redo");
@@ -50,12 +51,12 @@ public class Main extends Application {
         reset.setOnAction(e -> controller.reset());
         solve.setOnAction(e -> controller.solveByUndoAll());
 
-        // --- Algorithm entry (Apply only; Play removed) ---
+        // --- Algorithm entry (Apply only; no Play) ---
         TextField alg = new TextField();
         alg.setPromptText("Type alg: e.g., U L' r2 u");
         Button applyAlg = new Button("Apply");
         applyAlg.setOnAction(e -> controller.applyAlg(alg.getText()));
-        alg.setOnAction(e -> controller.applyAlg(alg.getText())); // press Enter to apply
+        alg.setOnAction(e -> controller.applyAlg(alg.getText())); // Enter to apply
 
         // Move counter
         Label movesLabel = new Label();
@@ -64,6 +65,15 @@ public class Main extends Application {
         // Help
         Button help = new Button("Help");
         help.setOnAction(e -> showHelp(stage));
+
+        // --- Build both views ---
+        FxRenderer netView = new FxRenderer(controller.stateProperty(), controller::apply);
+        Pyraminx3DView view3d = new Pyraminx3DView(controller.stateProperty(), controller::apply);
+
+        TabPane tabs = new TabPane();
+        tabs.getTabs().add(new Tab("Net", netView));
+        tabs.getTabs().add(new Tab("3D",  view3d));
+        tabs.getTabs().forEach(t -> t.setClosable(false));
 
         // Toolbar layout
         ToolBar bar = new ToolBar(
@@ -76,22 +86,24 @@ public class Main extends Application {
                 help
         );
 
-        // Renderer observes state; clicks send moves back through controller
-        FxRenderer renderer = new FxRenderer(controller.stateProperty(), controller::apply);
-
-        BorderPane root = new BorderPane(renderer);
+        BorderPane root = new BorderPane(tabs);
         root.setTop(bar);
 
         Scene scene = new Scene(root, 1280, 800);
         InputBindings.install(scene, controller);
 
         // F1 opens Help
-        scene.getAccelerators().put(KeyCombination.valueOf("F1"), () -> showHelp(stage));
+        scene.getAccelerators().put(
+                KeyCombination.valueOf("F1"),
+                () -> showHelp(stage)
+        );
 
         stage.setTitle("Pyraminx Simulator");
         stage.setScene(scene);
         stage.show();
     }
+
+
 
     /**
      * Shows a quick-reference dialog explaining controls, notation, and toolbar.
