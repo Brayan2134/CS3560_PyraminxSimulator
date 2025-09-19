@@ -37,6 +37,8 @@ public class Main extends Application {
         // Controller (owns state + history)
         PuzzleController controller = new PuzzleController(new History());
 
+        controller.initFromAutosaveOrSolved();
+
         // --- Toolbar: core actions ---
         Button scramble = new Button("Scramble");
         Button undo     = new Button("Undo");

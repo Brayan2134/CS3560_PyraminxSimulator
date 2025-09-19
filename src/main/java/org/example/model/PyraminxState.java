@@ -104,6 +104,65 @@ public final class PyraminxState {
         return true;
     }
 
+    @Override public String toString() {
+        return "Tips=" + Arrays.toString(tipOri) +
+                " Edges@=" + Arrays.toString(edgeAt) +
+                " eOri=" + Arrays.toString(edgeOri) +
+                " Centers@=" + Arrays.toString(centerAt) +
+                " cOri=" + Arrays.toString(centerOri);
+    }
+
+    /**
+     * Returns a stable, versioned one-line snapshot of this state.
+     * Format (v1):
+     *  v:1; tipOri:[0, 0, 0, 0]; edgeAt:[0, 1, 2, 3, 4, 5]; edgeOri:[0, 0, 0, 0, 0, 0];
+     *       centerAt:[0, 1, 2, 3]; centerOri:[0, 0, 0, 0];
+     *
+     * Preconditions:
+     *  - This object is already legal (constructor/factory guarantees).
+     *
+     * Postconditions:
+     *  - Returns a single-line String that fully describes the state.
+     */
+    public String toSnapshot() {
+        StringBuilder sb = new StringBuilder(160);
+        sb.append("v:1;");
+        sb.append(" tipOri:").append(Arrays.toString(this.tipOri)).append(';');
+        sb.append(" edgeAt:").append(Arrays.toString(this.edgeAt)).append(';');
+        sb.append(" edgeOri:").append(Arrays.toString(this.edgeOri)).append(';');
+        sb.append(" centerAt:").append(Arrays.toString(this.centerAt)).append(';');
+        sb.append(" centerOri:").append(Arrays.toString(this.centerOri)).append(';');
+        return sb.toString();
+    }
+
+    /**
+     * Reconstructs a state from {@link #toSnapshot()} output.
+     * Only version "v:1;" is supported.
+     *
+     * Preconditions:
+     *  @param line != null, begins with "v:1;"
+     *
+     * Postconditions:
+     *  - Returns a new, validated PyraminxState equal to the encoded state.
+     *
+     * @throws IllegalArgumentException if the line is malformed or version unsupported
+     */
+    public static PyraminxState fromSnapshot(String line) {
+        if (line == null) throw new IllegalArgumentException("Null snapshot");
+        String s = line.trim();
+        if (!s.startsWith("v:")) throw new IllegalArgumentException("Missing version header");
+        if (!s.startsWith("v:1;")) throw new IllegalArgumentException("Unsupported snapshot version");
+
+        byte[] tipOri    = parseByteArray(s, "tipOri");
+        int[]  edgeAt    = parseIntArray (s, "edgeAt");
+        byte[] edgeOri   = parseByteArray(s, "edgeOri");
+        int[]  centerAt  = parseIntArray (s, "centerAt");
+        byte[] centerOri = parseByteArray(s, "centerOri");
+
+        // If your validating factory has a different name, change the next call only.
+        return checkedOf(tipOri, edgeAt, edgeOri, centerAt, centerOri);
+    }
+
 
     /*--------------------------------------- helper functions ---------------------------------------*/
 
@@ -159,12 +218,41 @@ public final class PyraminxState {
         h = 31*h + Arrays.hashCode(centerOri);
         return h;
     }
-    @Override public String toString() {
-        return "Tips=" + Arrays.toString(tipOri) +
-                " Edges@=" + Arrays.toString(edgeAt) +
-                " eOri=" + Arrays.toString(edgeOri) +
-                " Centers@=" + Arrays.toString(centerAt) +
-                " cOri=" + Arrays.toString(centerOri);
+
+    /**
+     * Extracts the comma-separated contents inside the [...] that follows key: .
+     */
+    private static String sliceArray(String s, String key) {
+        int k = s.indexOf(key + ":");
+        if (k < 0) throw new IllegalArgumentException("Missing key: " + key);
+        int lb = s.indexOf('[', k);
+        int rb = s.indexOf(']', lb + 1);
+        if (lb < 0 || rb < 0) throw new IllegalArgumentException("Bad array for key: " + key);
+        return s.substring(lb + 1, rb).trim();
+    }
+
+    /**
+     * Parses an int[] from the array body extracted by sliceArray.
+     */
+    private static int[] parseIntArray(String s, String key) {
+        String body = sliceArray(s, key);
+        if (body.isEmpty()) return new int[0];
+        String[] parts = body.split(",");
+        int[] out = new int[parts.length];
+        for (int i = 0; i < parts.length; i++) out[i] = Integer.parseInt(parts[i].trim());
+        return out;
+    }
+
+    /**
+     * Parses a byte[] from the array body extracted by sliceArray.
+     */
+    private static byte[] parseByteArray(String s, String key) {
+        String body = sliceArray(s, key);
+        if (body.isEmpty()) return new byte[0];
+        String[] parts = body.split(",");
+        byte[] out = new byte[parts.length];
+        for (int i = 0; i < parts.length; i++) out[i] = Byte.parseByte(parts[i].trim());
+        return out;
     }
 
     /*--------------------------------------- negative tests ---------------------------------------*/
