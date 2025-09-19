@@ -63,11 +63,17 @@ public final class FxRenderer extends Pane {
         double gap  = 18;
         double h    = side * Math.sqrt(3) / 2.0;
 
-        // 2×2 placement of faces
-        addFace(g, Face.U, 0,          0,       side, s);
-        addFace(g, Face.B, side + gap, 0,       side, s);
-        addFace(g, Face.L, 0,          h + gap, side, s);
-        addFace(g, Face.R, side + gap, h + gap, side, s);
+        // Diamond layout:
+        //   B at top-center
+        //   L at left-middle
+        //   R at right-middle
+        //   U at bottom-center
+        double cx = side + gap;                 // center x for top/bottom faces
+
+        addFace(g, Face.B, cx,               0,              side, s);                // Top (Back)
+        addFace(g, Face.L,            0,     h + gap,        side, s);                // Left
+        addFace(g, Face.R,  2*side + 2*gap,  h + gap,        side, s);                // Right
+        addFace(g, Face.U, cx,        2*h + 2*gap,           side, s);                // Bottom (Front)
 
         getChildren().add(g);
     }
